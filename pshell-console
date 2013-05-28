@@ -1,0 +1,75 @@
+#!/usr/bin/perl
+
+use Expect;
+use DBI;
+use Switch;
+use Pshell;
+
+require "settings.pl";
+
+if (!$ARGV[0] or $ARGV[0] eq "help"){
+        print "#################################################################################\n";
+        print "\n";
+        print "** List servers:\n";
+        print "         pshell-console list\n";
+	print "** Add server:\n";
+        print "         pshell-console add <hostname> <ipaddr> <login> <password> <port> <NO>\n";
+	print " If you need to access a server using RSA key use:\n";
+	print "         pshell-console add <hostname> <ipaddr> <login> <password> <port> <YES> <path to RSA key>\n";
+	print "** Delete server:\n";
+        print "         pshell-console del <serverid>\n";
+        print "\n";
+        print "\n";
+	exit 0;
+}
+
+switch($ARGV[0]){
+	case "list" {
+		list_all_servers($db);
+	}
+	case "add" {
+		if ($#ARGV == 6){
+			add_server($db,$ARGV[1]);
+			$serverid=get_server_id($db,$ARGV[1]);
+			add_attr_val($db,$serverid,$ip_attr_id,$ARGV[2]);
+			add_attr_val($db,$serverid,$login_attr_id,$ARGV[3]);
+			add_attr_val($db,$serverid,$pass_attr_id,$ARGV[4]);
+			add_attr_val($db,$serverid,$port_attr_id,$ARGV[5]);
+			add_attr_val($db,$serverid,$keyauth_attr_id,$ARGV[6]);
+		}
+		elsif ($#ARGV == "7"){
+			add_server($db,$ARGV[1]);
+                        $serverid=get_server_id($db,$ARGV[1]);
+                        add_attr_val($db,$serverid,$ip_attr_id,$ARGV[2]);
+                        add_attr_val($db,$serverid,$login_attr_id,$ARGV[3]);
+                        add_attr_val($db,$serverid,$pass_attr_id,$ARGV[4]);
+                        add_attr_val($db,$serverid,$port_attr_id,$ARGV[5]);
+                        add_attr_val($db,$serverid,$keyauth_attr_id,$ARGV[6]);
+			add_attr_val($db,$serverid,$keypath_attr_id,$ARGV[7]);
+		}
+		else{
+			print "Incorrect add server string. Please see help for additional details\n";
+		}
+	}
+	case "del" {
+		del_server($db,$ARGV[1]);
+	}
+	case "add-attr" {
+		add_attr($db,$ARGV[1],$ARGV[2]);
+	}
+	
+	case "get-info" {
+		$serverid=get_server_id($db,$ARGV[1]);
+		my ($ipaddr,$login,$password,$port,$keypath) = get_login_string($db,$serverid,$ip_attr_id,$login_attr_id,$pass_attr_id,$port_attr_id,$keyauth_attr_id,$keypath_attr_id);
+		print "Server:		$ARGV[1] / $ipaddr\n";
+		print "Login: 		$login\n";
+		print "Password: 	$password\n";
+		print "SSH port: 	$port\n";
+		print "RSA key file:	$keypath\n";
+	}
+#	case "test" {
+#		$serverid=get_server_id($db,$ARGV[1]);
+#		get_login_string($db,$serverid,$ip_attr_id,$login_attr_id,$pass_attr_id,$port_attr_id,$keyauth_attr_id,$keypath_attr_id);
+#	}
+	else {print "Switch works";}
+}

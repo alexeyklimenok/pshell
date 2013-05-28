@@ -1,0 +1,61 @@
+#!/usr/bin/perl
+
+use Expect;
+use DBI;
+use Pshell;
+
+require "settings.pl";
+
+if (!$ARGV[0]){
+	print "Usage: pshell <hostname>\n";
+	exit 0;
+}
+
+if ($ARGV[0] eq "help"){
+	print "#################################################################################\n";
+	print "\n";
+	print "** Usage: pshell <hostname>\n";
+	print "\n";
+	print "** To list/add/delete servers use pshell-console:\n";
+	print "		pshell-console list\n";
+        print "		pshell-console add <hostname> <ipaddr> <login> <password> <port>\n";
+	print "		pshell-console <serverid>\n";
+	print "\n";
+	print "* To create new servers database use init_db.sh shell script\n";
+	print "\n";
+	print "\n";
+	exit 0;
+}
+
+
+my $server=$ARGV[0];
+my $serverid = get_server_id($db,$server);
+if ($serverid eq "false"){
+	print "$server server is not found in database\n";
+	exit 0;
+}
+my $keypath = "false";
+my ($ipaddr,$login,$password,$port,$keypath) = get_login_string($db,$serverid,$ip_attr_id,$login_attr_id,$pass_attr_id,$port_attr_id,$keyauth_attr_id,$keypath_attr_id); 
+if ($keypath eq "false"){
+	$exp = Expect->spawn("ssh -p $port $login\@$ipaddr") or die "Cannot connect to $ipaddr: $!\n";
+}
+else {
+	$exp = Expect->spawn("ssh -p $port $login\@$ipaddr -i $keypath") or die "Cannot connect to $ipaddr: $!\n";
+}
+
+my $spawn_ok;
+sleep $timeout;
+$exp->expect($timeout,
+        ['assword:', sub{
+                $exp->send("$password\n");
+                exp_continue;}
+        ],
+        '-re', qr'[\$#>:]$'
+);
+if (open(PROFILE, "<.pshell_profile")){
+	while(<PROFILE>){
+		$exp->send("$_");
+	}
+}
+$exp->send("\n");
+$exp->interact();

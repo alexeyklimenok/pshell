@@ -1,0 +1,23 @@
+# Fixing number of terminal rows (lines)
+stty rows 44
+stty cols 168
+# Fixing terminfo to avoid warnings from vim
+TERM=xterm;export TERM
+
+alias ll="ls -la"
+alias lad="ls -lad"
+alias p="ps auxf | less"
+alias ll="ls -la"
+alias grep="grep --color"
+alias p="ps auxf | less"
+alias pg='ps auxfw | grep'
+alias dg="dig +trace"
+
+export HISTFILE=;
+#######My aliases#############
+alias myip='echo "use Socket;socket(S,2,2,17);connect(S,sockaddr_in(1,inet_aton(\"1.2.3.4\")));@mip=sockaddr_in(getsockname(S));print inet_ntoa(\$mip[1]);"|perl'
+IP=`myip` 
+PATH=/usr/bin:$PATH:$HOME:$HOME/bin:/usr/sbin:/sbin:/scripts
+export EDITOR=vim;
+####################################################################################################################################### 
+export PS1="\e[1;30m($GR)=($OWN)=(\[\033[01;31m\]\H\e[1;30m)=($IP)=($CP)=($APA)=($MYS)=(\[\033[01;31m\]\$(date +%k:%M:%S)\e[1;30m)=(\w)=>\e[0m\n\u\$";
